@@ -1,0 +1,469 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Define theme variables for light mode (default) */
+:root {
+    --background-color: #f5f5f5; /* Light gray background */
+    --text-color: #000000; /* Black text */
+    --secondary-text-color: #666666; /* Dark gray text */
+    --card-background: #ffffff; /* White card background */
+    --card-hover-background: #f0f0f0; /* Light gray card hover */
+    --nav-background: #ffffff; /* White navigation bar */
+    --input-background: #ffffff; /* White input background */
+    --input-border: #cccccc; /* Light gray input border */
+    --accent-color: #1db954; /* Spotify green */
+    --accent-hover-color: #1ed760; /* Lighter green on hover */
+    --highlight-background: #1db954; /* Highlight background */
+    --highlight-text: #000000; /* Highlight text */
+    --premium-color: #ff3333; /* Red for premium label */
+    --disabled-color: #cccccc; /* Light gray for disabled buttons */
+    --shadow-color: rgba(0, 0, 0, 0.2); /* Lighter shadow */
+    --like-button-color: #ff4d4d; /* Red for like button */
+    --unlike-button-color: #666666; /* Gray for unlike button */
+    --follow-button-color: #1e90ff; /* Blue for follow button */
+    --unfollow-button-color: #666666; /* Gray for unfollow button */
+    --remove-button-color: #ff5555; /* Red for remove button */
+    --remove-button-hover-color: #ff7777; /* Lighter red on hover */
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    --background-color: #121212; /* Dark background */
+    --text-color: #ffffff; /* White text */
+    --secondary-text-color: #b3b3b3; /* Light gray text */
+    --card-background: #181818; /* Card background */
+    --card-hover-background: #282828; /* Card hover background */
+    --nav-background: #000000; /* Navigation bar background */
+    --input-background: #2a2a2a; /* Input background */
+    --input-border: #3a3a3a; /* Input border */
+    --accent-color: #1db954; /* Keep the same accent color */
+    --accent-hover-color: #1ed760; /* Keep the same hover color */
+    --highlight-background: #1db954; /* Keep the same highlight */
+    --highlight-text: #000000; /* Keep the same highlight text */
+    --premium-color: #ff5555; /* Slightly lighter red for visibility */
+    --disabled-color: #555555; /* Dark gray for disabled buttons */
+    --shadow-color: rgba(0, 0, 0, 0.5); /* Darker shadow */
+    --like-button-color: #ff4d4d; /* Red for like button */
+    --unlike-button-color: #666666; /* Gray for unlike button */
+    --follow-button-color: #1e90ff; /* Blue for follow button */
+    --unfollow-button-color: #666666; /* Gray for unfollow button */
+    --remove-button-color: #ff5555; /* Red for remove button */
+    --remove-button-hover-color: #ff7777; /* Lighter red on hover */
+}
+
+/* Global styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Navigation Bar */
+nav {
+    background-color: var(--nav-background);
+    padding: 15px 20px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav a {
+    color: var(--secondary-text-color);
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: var(--accent-color);
+}
+
+/* Theme Toggle Button */
+#dark-mode-toggle {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#dark-mode-toggle:hover {
+    color: var(--accent-color);
+}
+
+/* Main content */
+main {
+    padding: 80px 20px 20px; /* Space for fixed nav bar */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Headings */
+h1, h2, h3 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+h3 {
+    margin-top: 40px;
+}
+
+/* Paragraphs */
+p {
+    color: var(--secondary-text-color);
+    margin-bottom: 10px;
+}
+
+/* Flash Messages */
+.flash-message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Track Table (used in multiple pages) */
+.track-table {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px 0;
+}
+
+.track-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--card-background);
+    margin-bottom: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.track-row:hover {
+    background-color: var(--card-hover-background);
+}
+
+.track-info {
+    flex: 1;
+    color: var(--text-color);
+}
+
+.track-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Vertically center all buttons */
+    flex-wrap: nowrap; /* Prevent buttons from wrapping to a new line */
+}
+.track-actions form {
+    display: inline;
+}
+
+/* Like/Unlike and Follow/Unfollow Buttons */
+.like-button, .unlike-button, .follow-button, .unfollow-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.like-button {
+    background-color: var(--like-button-color);
+    color: #ffffff;
+}
+
+.unlike-button {
+    background-color: var(--unlike-button-color);
+    color: #ffffff;
+}
+
+.follow-button {
+    background-color: var(--follow-button-color);
+    color: #ffffff;
+}
+
+.unfollow-button {
+    background-color: var(--unfollow-button-color);
+    color: #ffffff;
+}
+
+/* Remove Button (for playlists) */
+button[name="remove_track"] {
+    background-color: var(--remove-button-color);
+    color: #ffffff;
+}
+
+button[name="remove_track"]:hover {
+    background-color: var(--remove-button-hover-color);
+}
+
+/* General Buttons (Play, Submit, etc.) */
+button, form button {
+    padding: 8px 15px;
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+button:disabled, form button:disabled {
+    background-color: var(--disabled-color);
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled), form button:hover:not(:disabled) {
+    background-color: var(--accent-hover-color);
+}
+
+/* Search Page */
+#search-query {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+#search-query:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(29, 185, 84, 0.5);
+}
+
+/* Featured Tracks (Home Page), Top Tracks (Profile Page), Playlists, Player Page */
+#featured-tracks ul,
+#top-tracks ul,
+#tracks-in-playlist ul,
+#all-tracks {
+    list-style: none;
+    padding: 0;
+}
+
+#featured-tracks li,
+#top-tracks li,
+#tracks-in-playlist li,
+#all-tracks li {
+    background-color: var(--card-background);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+#featured-tracks li:hover,
+#top-tracks li:hover,
+#tracks-in-playlist li:hover,
+#all-tracks li:hover {
+    background-color: var(--card-hover-background);
+}
+
+/* Forms (e.g., Upload Track, Add Track to Playlist) */
+form {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="date"],
+form input[type="file"],
+form input[type="number"],
+form select {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+form input:focus,
+form select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(29, 185, 84, 0.5);
+}
+
+/* Player Page */
+#now-playing {
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px var(--shadow-color);
+}
+
+#now-playing p {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+#now-playing audio {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--input-background);
+    border-radius: 5px;
+    margin: 0 auto;
+    display: block;
+}
+
+.player-controls {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    align-items: center; /* Vertically center all buttons */
+    flex-wrap: nowrap; /* Prevent buttons from wrapping to a new line */
+}
+
+.player-controls form {
+    display: inline;
+}
+/* Premium Label */
+.premium-label {
+    color: var(--premium-color);
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav a {
+        margin: 5px 10px;
+        font-size: 14px;
+    }
+
+    #dark-mode-toggle {
+        margin: 5px 10px;
+    }
+
+    .track-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .track-actions {
+        margin-top: 10px;
+    }
+
+    form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    form input,
+    form select,
+    form button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .player-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .player-controls form button {
+        width: 100%;
+        padding: 12px;
+    }
+}
+/* Download Button */
+.download-button {
+    padding: 8px 15px;
+    background-color: #007bff; /* Blue for download */
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    display: inline-flex; /* Ensure proper alignment of text/icon */
+    align-items: center;
+    justify-content: center;
+    width: 80px; /* Fixed width to match Play button size */
+    height: 45px; /* Fixed height to match Play button size */
+}
+
+.download-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.download-button.disabled {
+    background-color: var(--disabled-color);
+    cursor: not-allowed;
+}
+
+.download-button.disabled:hover {
+    background-color: var(--disabled-color);
+}

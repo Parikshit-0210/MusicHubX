@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Music Streaming System{% endblock %}
+{% block content %}
+    <h1>Welcome to Music Streaming App</h1>
+    <h2>Featured Tracks</h2>
+    <div class="track-table">
+        {% for track in featured_tracks %}
+        <div class="track-row">
+            <div class="track-info">
+                {{ track.track_name }} by {{ track.artist_name }} ({{ track.genre_name }}) - {{ track.play_count }} plays
+                {% if track.is_premium %}
+                    <span class="premium-label">[Premium]</span>
+                {% endif %}
+            </div>
+            <div class="track-actions">
+                <form action="{{ url_for('player') }}" method="POST">
+                    <input type="hidden" name="action" value="play">
+                    <input type="hidden" name="track_id" value="{{ track.track_id }}">
+                    <input type="hidden" name="context_type" value="search">
+                    {% if track.is_premium and not is_premium_user %}
+                        <button type="submit" disabled>Play (Premium Required)</button>
+                    {% else %}
+                        <button type="submit">Play</button>
+                    {% endif %}
+                </form>
+                <!-- Download Button -->
+                {% if is_premium_user %}
+                    <a href="{{ url_for('download_track', track_id=track.track_id) }}" class="download-button">Download</a>
+                {% else %}
+                    <a href="{{ url_for('subscription') }}" class="download-button disabled" title="Upgrade to premium to download">Download (Premium)</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

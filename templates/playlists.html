@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Music Streaming System{% endblock %}
+{% block content %}
+    <h1>Playlists</h1>
+    {% if not playlist %}
+        <form method="POST">
+            <input type="text" name="name" placeholder="New Playlist Name" required>
+            <button type="submit">Create Playlist</button>
+        </form>
+        <ul>
+            {% for pl in playlists %}
+            <li>
+                <a href="{{ url_for('playlist_details', playlist_id=pl.playlist_id) }}">{{ pl.name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+
+        <h2>{{ playlist.name }}</h2>
+        <div id="tracks-in-playlist">
+            <ul>
+                {% for track in tracks %}
+                <li>
+                    <div class="track-row">
+                        <div class="track-info">
+                            {{ track.name }} by {{ track.artist_name }} ({{ track.genre_name }}) - {{ track.duration }} minutes
+                            {% if track.is_premium %}
+                                <span class="premium-label">[Premium]</span>
+                            {% endif %}
+                        </div>
+                        <div class="track-actions">
+                            <form action="{{ url_for('player') }}" method="POST">
+                                <input type="hidden" name="action" value="play">
+                                <input type="hidden" name="track_id" value="{{ track.track_id }}">
+                                <input type="hidden" name="context_type" value="playlist">
+                                <input type="hidden" name="context_id" value="{{ playlist.playlist_id }}">
+                                {% if track.is_premium and not is_premium_user %}
+                                    <button type="submit" disabled>Play (Premium Required)</button>
+                                {% else %}
+                                    <button type="submit">Play</button>
+                                {% endif %}
+                            </form>
+                            <!-- Like/Unlike Button -->
+                            <form action="{{ url_for('like_track' if not track.is_liked else 'unlike_track', track_id=track.track_id) }}" method="POST">
+                                <button type="submit" class="{{ 'like-button' if not track.is_liked else 'unlike-button' }}">
+                                    {{ 'Like' if not track.is_liked else 'Unlike' }}
+                                </button>
+                            </form>
+                            <!-- Follow/Unfollow Button -->
+                            {% if track.artist_id %}
+                            <form action="{{ url_for('follow_artist' if not track.is_following_artist else 'unfollow_artist', artist_id=track.artist_id) }}" method="POST">
+                                <button type="submit" class="{{ 'follow-button' if not track.is_following_artist else 'unfollow-button' }}">
+                                    {{ 'Follow' if not track.is_following_artist else 'Unfollow' }}
+                                </button>
+                            </form>
+                            {% endif %}
+                            <!-- Download Button -->
+                            {% if is_premium_user %}
+                                <a href="{{ url_for('download_track', track_id=track.track_id) }}" class="download-button">Download</a>
+                            {% else %}
+                                <a href="{{ url_for('subscription') }}" class="download-button disabled" title="Upgrade to premium to download">Download (Premium)</a>
+                            {% endif %}
+                            <!-- Remove Button (not for Liked Songs) -->
+                            {% if playlist.playlist_id != -1 %}
+                            <form action="{{ url_for('remove_track_from_playlist', playlist_id=playlist.playlist_id, track_id=track.track_id) }}" method="POST">
+                                <button type="submit" name="remove_track">Remove</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% if playlist.playlist_id != -1 %}
+        <h3>Add Track to Playlist</h3>
+        <form method="POST" action="{{ url_for('playlist_details', playlist_id=playlist.playlist_id) }}">
+            <input type="text" name="track_name" placeholder="Track Name" required>
+            <input type="number" name="order" placeholder="Order (optional)">
+            <button type="submit">Add Track</button>
+        </form>
+        {% endif %}
+    <!-- Back to Playlists Link -->
+        <div class="back-link">
+            <a href="{{ url_for('playlists') }}">Back to Playlists</a>
+        </div>
+    {% endif %}
+{% endblock %}

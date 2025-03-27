@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Subscription</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 10px;">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h2>Available Plans</h2>
+    <ul>
+    {% for plan in plans %}
+        <li>
+            {{ plan.name }} - ${{ plan.price }} for {{ plan.duration }} days
+            {% if plan.price > 0 %}
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="action" value="subscribe">
+                    <input type="hidden" name="plan_id" value="{{ plan.plan_id }}">
+                    <select name="payment_method" required>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                    <button type="submit">Subscribe</button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+
+    <h2>Subscription History</h2>
+    {% if subscription_history %}
+        <table border="1">
+            <tr>
+                <th>Plan Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Action</th>
+            </tr>
+            {% for entry in subscription_history %}
+                <tr>
+                    <td>{{ entry.plan_name }}</td>
+                    <td>{{ entry.start_date }}</td>
+                    <td>{{ entry.end_date if entry.end_date else 'Active' }}</td>
+                    <td>{{ entry.action }}</td>
+                    {% if not entry.end_date %}
+                        <td>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit">Cancel</button>
+                            </form>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No subscription history available.</p>
+    {% endif %}
+{% endblock %}

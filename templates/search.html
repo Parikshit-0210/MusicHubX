@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Music Streaming System{% endblock %}
+{% block content %}
+    <h1>Search Tracks</h1>
+    <input type="text" id="search-query" placeholder="Search for tracks, artists, or albums..." value="{{ query }}">
+    <div id="search-results">
+        {% if results %}
+            {% for result in results %}
+            <div class="track-row">
+                <div class="track-info">
+                    {{ result.track_name }} by {{ result.artist_name }} ({{ result.genre_name }})
+                    {% if result.is_premium %}
+                        <span class="premium-label">[Premium]</span>
+                    {% endif %}
+                </div>
+                <div class="track-actions">
+                    <form action="{{ url_for('player') }}" method="POST">
+                        <input type="hidden" name="action" value="play">
+                        <input type="hidden" name="track_id" value="{{ result.track_id }}">
+                        <input type="hidden" name="context_type" value="search">
+                        {% if result.is_premium and not is_premium_user %}
+                            <button type="submit" disabled>Play (Premium Required)</button>
+                        {% else %}
+                            <button type="submit">Play</button>
+                        {% endif %}
+                    </form>
+                    <!-- Like/Unlike Button -->
+                    <form action="{{ url_for('like_track' if not result.is_liked else 'unlike_track', track_id=result.track_id) }}" method="POST">
+                        <button type="submit" class="{{ 'like-button' if not result.is_liked else 'unlike-button' }}">
+                            {{ 'Like' if not result.is_liked else 'Unlike' }}
+                        </button>
+                    </form>
+                    <!-- Follow/Unfollow Button -->
+                    {% if result.artist_id %}
+                    <form action="{{ url_for('follow_artist' if not result.is_following_artist else 'unfollow_artist', artist_id=result.artist_id) }}" method="POST">
+                        <button type="submit" class="{{ 'follow-button' if not result.is_following_artist else 'unfollow-button' }}">
+                            {{ 'Follow' if not result.is_following_artist else 'Unfollow' }}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <!-- Download Button -->
+                    {% if is_premium_user %}
+                        <a href="{{ url_for('download_track', track_id=result.track_id) }}" class="download-button">Download</a>
+                    {% else %}
+                        <a href="{{ url_for('subscription') }}" class="download-button disabled" title="Upgrade to premium to download">Download (Premium)</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% if query %}
+                <p>No results found for "{{ query }}".</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('search-query').addEventListener('input', function() {
+            const query = this.value;
+            fetch('/search_ajax', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ 'query': query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+                const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = '';
+                if (data.results.length > 0) {
+                    data.results.forEach(result => {
+                        const trackDiv = document.createElement('div');
+                        trackDiv.className = 'track-row';
+                        trackDiv.innerHTML = `
+                            <div class="track-info">
+                                ${result.track_name} by ${result.artist_name} (${result.genre_name})
+                                ${result.is_premium ? '<span class="premium-label">[Premium]</span>' : ''}
+                            </div>
+                            <div class="track-actions">
+                                <form action="/player" method="POST">
+                                    <input type="hidden" name="action" value="play">
+                                    <input type="hidden" name="track_id" value="${result.track_id}">
+                                    <input type="hidden" name="context_type" value="search">
+                                    <button type="submit" ${result.is_premium && !data.is_premium_user ? 'disabled' : ''}>
+                                        ${result.is_premium && !data.is_premium_user ? 'Play (Premium Required)' : 'Play'}
+                                    </button>
+                                </form>
+                                <form action="/${result.is_liked ? 'unlike' : 'like'}/${result.track_id}" method="POST">
+                                    <button type="submit" class="${result.is_liked ? 'unlike-button' : 'like-button'}">
+                                        ${result.is_liked ? 'Unlike' : 'Like'}
+                                    </button>
+                                </form>
+                                ${result.artist_id ? `
+                                <form action="/${result.is_following_artist ? 'unfollow' : 'follow'}/${result.artist_id}" method="POST">
+                                    <button type="submit" class="${result.is_following_artist ? 'unfollow-button' : 'follow-button'}">
+                                        ${result.is_following_artist ? 'Unfollow' : 'Follow'}
+                                    </button>
+                                </form>
+                                ` : ''}
+                                ${data.is_premium_user ? `
+                                <a href="/download/${result.track_id}" class="download-button">Download</a>
+                                ` : `
+                                <a href="/subscription" class="download-button disabled" title="Upgrade to premium to download">Download (Premium)</a>
+                                `}
+                            </div>
+                        `;
+                        resultsDiv.appendChild(trackDiv);
+                    });
+                } else {
+                    if (query) {
+                        resultsDiv.innerHTML = `<p>No results found for "${query}".</p>`;
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+{% endblock %}

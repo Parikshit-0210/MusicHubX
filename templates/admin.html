@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, Admin! <a href="{{ url_for('admin_logout') }}">Logout</a></p>
+
+    <!-- Add Artist -->
+    <h2>Add Artist</h2>
+    <form method="POST" action="{{ url_for('admin_add_artist') }}">
+        <input type="text" name="name" placeholder="Artist Name" required>
+        <input type="email" name="email" placeholder="Artist Email" required>
+        <button type="submit">Add Artist</button>
+    </form>
+
+    <!-- Remove Artist -->
+    <h2>Remove Artist</h2>
+    <form method="POST" action="{{ url_for('admin_remove_artist') }}">
+        <input type="text" name="name" placeholder="Artist Name" required>
+        <button type="submit">Remove Artist</button>
+    </form>
+
+    <!-- Add Album -->
+    <h2>Add Album</h2>
+    <form method="POST" action="{{ url_for('admin_add_album') }}">
+        <input type="text" name="name" placeholder="Album Name" required>
+        <input type="date" name="release_date" required>
+        <input type="text" name="artist_name" placeholder="Artist Name" required>
+        <button type="submit">Add Album</button>
+    </form>
+
+    <!-- Remove Album -->
+    <h2>Remove Album</h2>
+    <form method="POST" action="{{ url_for('admin_remove_album') }}">
+        <input type="text" name="name" placeholder="Album Name" required>
+        <button type="submit">Remove Album</button>
+    </form>
+
+    <!-- Add Genre -->
+    <h2>Add Genre</h2>
+    <form method="POST" action="{{ url_for('admin_add_genre') }}">
+        <input type="text" name="name" placeholder="Genre Name" required>
+        <button type="submit">Add Genre</button>
+    </form>
+
+    <!-- Remove Genre -->
+    <h2>Remove Genre</h2>
+    <form method="POST" action="{{ url_for('admin_remove_genre') }}">
+        <input type="text" name="name" placeholder="Genre Name" required>
+        <button type="submit">Remove Genre</button>
+    </form>
+
+    <!-- Add Track -->
+    <h2>Add Track</h2>
+    <form method="POST" action="{{ url_for('admin_add_track') }}" enctype="multipart/form-data" class="add-track-form">
+        <div class="form-group">
+            <label for="track_name">Track Name:</label>
+            <input type="text" id="track_name" name="track_name" placeholder="Track Name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="artist_id">Artist:</label>
+            <select id="artist_id" name="artist_id" required>
+                <option value="" disabled selected>Select an artist</option>
+                {% for artist in artists %}
+                    <option value="{{ artist.artist_id }}">{{ artist.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="genre_id">Genre:</label>
+            <select id="genre_id" name="genre_id" required>
+                <option value="" disabled selected>Select a genre</option>
+                {% for genre in genres %}
+                    <option value="{{ genre.genre_id }}">{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="album_id">Album:</label>
+            <select id="album_id" name="album_id">
+                <option value="" selected>Select an album</option>
+                {% for album in albums %}
+                    <option value="{{ album.album_id }}">{{ album.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="is_premium">Premium Track:</label>
+            <input type="checkbox" id="is_premium" name="is_premium">
+        </div>
+
+        <div class="form-group">
+            <label for="file">Upload Track (.mp3):</label>
+            <input type="file" id="file" name="file" accept=".mp3" required>
+        </div>
+
+        <button type="submit">Add Track</button>
+    </form>
+
+    <!-- Remove Track -->
+    <h2>Remove Track</h2>
+    <form method="POST" action="{{ url_for('admin_remove_track') }}">
+        <input type="text" name="name" placeholder="Track Name" required>
+        <button type="submit">Remove Track</button>
+    </form>
+</main>
+
+<style>
+    /* Style the Add Track form to align fields in a single line with smaller boxes */
+    .add-track-form {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Space between form elements */
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+    }
+
+    label {
+        margin-right: 5px;
+        font-weight: normal;
+        font-size: 14px; /* Smaller label text */
+    }
+
+    input[type="text"],
+    select,
+    input[type="file"] {
+        padding: 3px 5px; /* Smaller padding for smaller boxes */
+        font-size: 14px; /* Smaller font size */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: auto; /* Let the width adjust based on content */
+        min-width: 120px; /* Minimum width for consistency */
+        height: 40px; /* Smaller height for input boxes */
+    }
+
+    input[type="checkbox"] {
+        margin-right: 10px;
+    }
+
+    button {
+        padding: 5px 15px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px; /* Smaller button text */
+    }
+
+    button:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}
