@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Upload New Track</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 10px;">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="track_name">Track Name:</label>
+            <input type="text" id="track_name" name="track_name" required>
+        </div>
+        <div>
+            <label for="artist_id">Artist:</label>
+            <select id="artist_id" name="artist_id" required>
+                <option value="">Select an artist</option>
+                {% for artist in artists %}
+                    <option value="{{ artist.artist_id }}">{{ artist.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="genre_id">Genre:</label>
+            <select id="genre_id" name="genre_id" required>
+                <option value="">Select a genre</option>
+                {% for genre in genres %}
+                    <option value="{{ genre.genre_id }}">{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="album_id">Album:</label>
+            <select id="album_id" name="album_id" required>
+                <option value="">Select an album</option>
+                {% for album in albums %}
+                    <option value="{{ album.album_id }}">{{ album.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="is_premium">Premium Track:</label>
+            <input type="checkbox" id="is_premium" name="is_premium">
+        </div>
+        <div>
+            <label for="file">Upload Track (.mp3):</label>
+            <input type="file" id="file" name="file" accept=".mp3" required>
+        </div>
+        <button type="submit">Upload</button>
+    </form>
+{% endblock %}
