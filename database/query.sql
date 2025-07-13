@@ -810,7 +810,7 @@ BEGIN
     JOIN tracks t ON l.track_id = t.track_id
     LEFT JOIN creates c ON t.track_id = c.track_id
     LEFT JOIN artists a ON c.artist_id = a.artist_id
-    LEFT JOIN genre g ON t.genre_id = g.genre_id  -- Fixed table name to 'genres'
+    LEFT JOIN genres g ON t.genre_id = g.genre_id  -- Fixed table name to 'genres'
     WHERE l.user_id = p_user_id
     GROUP BY t.track_id, t.name, a.name, g.name, t.is_premium
     ORDER BY play_count DESC, t.name
