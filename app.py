@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import mutagen
 from mutagen.mp3 import MP3
 import random
+import json
 from datetime import datetime  # Added for timestamp handling
 import mimetypes
 
@@ -153,7 +154,23 @@ def home():
 
     # Fetch some featured tracks (e.g., most played tracks across all users)
     cur.execute(
-        "SELECT * FROM get_top_played_tracks();"
+        """
+        SELECT 
+            t.track_id,
+            t.name AS track_name,
+            a.name AS artist_name,
+            g.name AS genre_name,
+            t.is_premium,
+            COUNT(l.track_id) AS play_count
+        FROM tracks t
+        LEFT JOIN creates c ON t.track_id = c.track_id
+        LEFT JOIN artists a ON c.artist_id = a.artist_id
+        LEFT JOIN genre g ON t.genre_id = g.genre_id
+        LEFT JOIN plays_queue l ON t.track_id = l.track_id
+        GROUP BY t.track_id, t.name, a.name, g.name
+        ORDER BY play_count DESC
+        LIMIT 5
+        """
     )
     featured_tracks = cur.fetchall()
 
@@ -264,7 +281,24 @@ def profile():
 
     # Fetch top 10 tracks based on listens
     cur.execute(
-        "SELECT * FROM get_user_top_tracks(%s);",
+        """
+        SELECT 
+            t.track_id,
+            t.name AS track_name,
+            a.name AS artist_name,
+            g.name AS genre_name,
+            t.is_premium,
+            COUNT(l.track_id) AS play_count
+        FROM plays_queue l
+        JOIN tracks t ON l.track_id = t.track_id
+        LEFT JOIN creates c ON t.track_id = c.track_id
+        LEFT JOIN artists a ON c.artist_id = a.artist_id
+        LEFT JOIN genre g ON t.genre_id = g.genre_id
+        WHERE l.user_id = %s
+        GROUP BY t.track_id, t.name, a.name, g.name, t.is_premium
+        ORDER BY play_count DESC, t.name
+        LIMIT 10
+        """,
         (user_id,)
     )
     top_tracks = cur.fetchall()
@@ -605,7 +639,7 @@ def playlist_details(playlist_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur = conn.cursor()
     try:
         # Handle the special "Liked Songs" playlist
         if playlist_id == -1:  # Liked Songs playlist
@@ -647,18 +681,15 @@ def playlist_details(playlist_id):
                 return redirect(url_for('playlists'))
 
             if request.method == 'POST':
-                track_name = request.form['track_name']
-                order = request.form.get('order') or None  # Use None if order is empty
-                print(f"Adding track with name: {track_name} to playlist_id: {playlist_id}")
-
-                # Call the stored procedure to add the track by name
+                track_id = request.form['track_id']
+                order = request.form.get('order')
+                print(f"Adding track_id: {track_id} to playlist_id: {playlist_id}")
                 cur.execute(
-                    "CALL add_track_to_playlist_by_name(%s, %s, %s, %s)",
-                    (playlist_id, track_name, order, None)
+                    "INSERT INTO included_in (playlist_id, track_id, \"order\") VALUES (%s, %s, %s)",
+                    (playlist_id, track_id, order)
                 )
-                result = cur.fetchone()
                 conn.commit()
-                flash(result['p_status'], "success" if 'successfully' in result['p_status'] else "error")
+                flash('Track added to playlist!', "success")
 
             # Fetch tracks with artist and genre information
             print(f"Fetching tracks for playlist_id: {playlist_id}")
@@ -716,6 +747,7 @@ def playlist_details(playlist_id):
 
     print("Rendering playlists.html with playlist and tracks")
     return render_template('playlists.html', playlists=[], playlist=playlist, tracks=tracks, is_premium_user=is_premium_user(session['user_id']))
+
 @app.route('/playlists/<int:playlist_id>/remove/<int:track_id>', methods=['POST'])
 def remove_track_from_playlist(playlist_id, track_id):
     if 'user_id' not in session:
@@ -930,6 +962,89 @@ def player():
         repeat=session.get('repeat', False),
         is_premium_user=user_is_premium
     )
+
+# Existing routes for adding genre, artist, album (to be removed or modified)
+@app.route('/add_genre', methods=['POST'])
+def add_genre():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    new_genre = request.form.get('new_genre')
+    if not new_genre:
+        flash('Genre name is required.')
+        return redirect(url_for('upload_track'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("INSERT INTO genre (name) VALUES (%s)", (new_genre,))
+        conn.commit()
+        flash('Genre added successfully!')
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error adding genre: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for('upload_track'))
+
+@app.route('/add_artist', methods=['POST'])
+def add_artist():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    new_artist = request.form.get('new_artist')
+    genre_id = request.form.get('artist_genre_id')
+    if not all([new_artist, genre_id]):
+        flash('Artist name and genre are required.')
+        return redirect(url_for('upload_track'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("INSERT INTO artists (name, genre_id) VALUES (%s, %s)", (new_artist, genre_id))
+        conn.commit()
+        flash('Artist added successfully!')
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error adding artist: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for('upload_track'))
+
+@app.route('/add_album', methods=['POST'])
+def add_album():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    new_album = request.form.get('new_album')
+    artist_id = request.form.get('album_artist_id')
+    release_date = request.form.get('release_date')
+    if not all([new_album, artist_id, release_date]):
+        flash('Album name, artist, and release date are required.')
+        return redirect(url_for('upload_track'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO albums (name, release_date, artist_id) VALUES (%s, %s, %s)",
+            (new_album, release_date, artist_id)
+        )
+        conn.commit()
+        flash('Album added successfully!')
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error adding album: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for('upload_track'))
+
 # Define allowed file extensions
 ALLOWED_EXTENSIONS = {'mp3'}
 
@@ -937,6 +1052,86 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_track():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                flash('No file part')
+                return redirect(request.url)
+            file = request.files['file']
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            if not allowed_file(file.filename):
+                flash('Invalid file type. Only .mp3 files are allowed.')
+                return redirect(request.url)
+
+            track_name = request.form.get('track_name')
+            artist_id = request.form.get('artist_id')
+            genre_id = request.form.get('genre_id')
+            album_id = request.form.get('album_id')
+            is_premium = request.form.get('is_premium') == 'on'
+
+            if not all([track_name, artist_id, genre_id, album_id]):
+                flash('All fields are required.')
+                return redirect(request.url)
+
+            cur.execute("SELECT track_id FROM tracks WHERE name = %s", (track_name,))
+            if cur.fetchone():
+                flash('A track with this name already exists. Please choose a different name.')
+                return redirect(request.url)
+
+            filename = secure_filename(track_name + '.mp3')
+            file_path = os.path.join(app.config['SONGS_DIR'], filename)
+            file.save(file_path)
+
+            audio = MP3(file_path)
+            duration_seconds = int(audio.info.length)  # Duration in seconds
+
+            # Convert duration to INTERVAL format (e.g., '239 seconds')
+            duration_interval = f"{duration_seconds} seconds"
+
+            cur.execute(
+                """
+                INSERT INTO tracks (name, duration, is_premium, genre_id, album_id, play_count)
+                VALUES (%s, %s::interval, %s, %s, %s, %s)
+                RETURNING track_id
+                """,
+                (track_name, duration_interval, is_premium, genre_id, album_id, 0)
+            )
+            track_id = cur.fetchone()['track_id']
+
+            cur.execute(
+                "INSERT INTO creates (artist_id, track_id) VALUES (%s, %s)",
+                (artist_id, track_id)
+            )
+
+            conn.commit()
+            flash('Track uploaded successfully!')
+            return redirect(url_for('player'))
+
+        cur.execute("SELECT * FROM genre")
+        genres = cur.fetchall()
+        cur.execute("SELECT * FROM artists")
+        artists = cur.fetchall()
+        cur.execute("SELECT * FROM albums")
+        albums = cur.fetchall()
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error uploading track: {str(e)}")
+        genres = artists = albums = []
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template('upload.html', genres=genres, artists=artists, albums=albums)
 
 # Route to download a song
 @app.route('/download/<int:track_id>')
@@ -1308,7 +1503,6 @@ def admin_remove_track():
                 (name, None))
     result = cur.fetchone()
     cur.close()
-
     conn.commit()
     conn.close()
 
